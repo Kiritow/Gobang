@@ -1,0 +1,57 @@
+# depslib dependency file v1.0
+1480975716 source:d:\codeblocks_codes\gobang20161204\initmanager.cpp
+	"InitManager.h"
+
+1481069511 source:d:\codeblocks_codes\gobang20161204\main.cpp
+	"config.h"
+	"InitManager.h"
+	"GameGUI.h"
+
+1481051388 d:\codeblocks_codes\gobang20161204\config.h
+	"basic_config.h"
+	"sdl_engine.h"
+
+1481051411 source:d:\codeblocks_codes\gobang20161204\config.cpp
+	"config.h"
+	<windows.h>
+
+1481072548 d:\codeblocks_codes\gobang20161204\initmanager.h
+	"config.h"
+	<vector>
+
+1480861727 d:\codeblocks_codes\gobang20161204\basic_config.h
+	<cstdio>
+	<cstdlib>
+	<cstring>
+	<SDL2/SDL.h>
+	<SDL2/SDL_ttf.h>
+	<SDL2/SDL_image.h>
+	<SDL2/SDL_Mixer.h>
+
+1481072516 d:\codeblocks_codes\gobang20161204\sdl_engine.h
+	"basic_config.h"
+
+1480852869 source:d:\codeblocks_codes\gobang20161204\basic_config.cpp
+	"basic_config.h"
+
+1481072516 source:d:\codeblocks_codes\gobang20161204\sdl_engine.cpp
+	"sdl_engine.h"
+
+1481073780 source:d:\codeblocks_codes\gobang20161204\gamegui.cpp
+	"GameGUI.h"
+	"Game.h"
+	<functional>
+	<algorithm>
+	<cpplib/cpplib#gsock>
+	<wartime/frame/MapBox.h>
+
+1481044411 d:\codeblocks_codes\gobang20161204\gamegui.h
+	"config.h"
+	"InitManager.h"
+
+1481028063 source:d:\codeblocks_codes\gobang20161204\game.cpp
+	"Game.h"
+
+1481011802 d:\codeblocks_codes\gobang20161204\game.h
+	"config.h"
+
