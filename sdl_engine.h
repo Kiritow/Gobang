@@ -10,3 +10,4 @@ bool isInRect(int x,int y,int LU_x,int LU_y,int RD_x,int RD_y);
 void ClearMessageQueue();
 
 extern SDL_Color color_white;
+extern SDL_Color color_black;

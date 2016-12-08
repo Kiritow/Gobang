@@ -60,3 +60,4 @@ void ClearMessageQueue()
 }
 
 SDL_Color color_white { 255,255,255 };
+SDL_Color color_black { 0,0,0 };

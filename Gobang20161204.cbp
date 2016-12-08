@@ -53,6 +53,7 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="sdl_engine.cpp" />
 		<Unit filename="sdl_engine.h" />
+		<Unit filename="xbutton.hpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

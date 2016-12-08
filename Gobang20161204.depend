@@ -2,7 +2,7 @@
 1480975716 source:d:\codeblocks_codes\gobang20161204\initmanager.cpp
 	"InitManager.h"
 
-1481069511 source:d:\codeblocks_codes\gobang20161204\main.cpp
+1481172516 source:d:\codeblocks_codes\gobang20161204\main.cpp
 	"config.h"
 	"InitManager.h"
 	"GameGUI.h"
@@ -28,22 +28,23 @@
 	<SDL2/SDL_image.h>
 	<SDL2/SDL_Mixer.h>
 
-1481072516 d:\codeblocks_codes\gobang20161204\sdl_engine.h
+1481111486 d:\codeblocks_codes\gobang20161204\sdl_engine.h
 	"basic_config.h"
 
 1480852869 source:d:\codeblocks_codes\gobang20161204\basic_config.cpp
 	"basic_config.h"
 
-1481072516 source:d:\codeblocks_codes\gobang20161204\sdl_engine.cpp
+1481111478 source:d:\codeblocks_codes\gobang20161204\sdl_engine.cpp
 	"sdl_engine.h"
 
-1481073780 source:d:\codeblocks_codes\gobang20161204\gamegui.cpp
+1481172612 source:d:\codeblocks_codes\gobang20161204\gamegui.cpp
 	"GameGUI.h"
 	"Game.h"
 	<functional>
 	<algorithm>
 	<cpplib/cpplib#gsock>
 	<wartime/frame/MapBox.h>
+	"xbutton.hpp"
 
 1481044411 d:\codeblocks_codes\gobang20161204\gamegui.h
 	"config.h"
@@ -54,4 +55,6 @@
 
 1481011802 d:\codeblocks_codes\gobang20161204\game.h
 	"config.h"
+
+1481110633 d:\codeblocks_codes\gobang20161204\xbutton.hpp
 

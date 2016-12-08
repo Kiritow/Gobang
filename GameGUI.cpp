@@ -15,6 +15,9 @@ SDL_Texture* _focus=NULL;
 SDL_Texture* _menu_background=NULL;
 SDL_Texture* _menu_text=NULL;
 SDL_Texture* _menu_light=NULL;
+SDL_Texture* _box_white=NULL;
+SDL_Texture* _box_black=NULL;
+SDL_Texture* _box_blank=NULL;
 
 
 Mix_Music* _bgm=NULL;
@@ -32,6 +35,10 @@ SDL_Texture* _button_menu_exit=NULL;
 SDL_Texture* _text_singleplayer_lost=NULL;
 SDL_Texture* _text_singleplayer_win=NULL;
 SDL_Texture* _text_searching_server=NULL;
+SDL_Texture* _text_singleplayer_easy=NULL;
+SDL_Texture* _text_singleplayer_normal=NULL;
+SDL_Texture* _text_singleplayer_hard=NULL;
+SDL_Texture* _text_singleplayer_choose=NULL;
 
 /// clicked mouseover normal
 #define BNAME(ButtonName,Status) _button_##ButtonName##_##Status
@@ -41,123 +48,13 @@ SDL_Texture* _text_searching_server=NULL;
 BNAMEX(restart);
 BNAMEX(cancel);
 BNAMEX(givein);
+BNAMEX(exit);
+BNAMEX(other);
 
 const int _button_w=115;
 const int _button_h=55;
 
-class xbutton
-{
-public:
-    SDL_Texture* text_normal;
-    SDL_Texture* text_mouseover;
-    SDL_Texture* text_clicked;
-    int x,y,w,h;
-    int centered;
-    int status;
-    function<void()> _onrelease;
-    function<void()> _onclick;
-    xbutton()
-    {
-        status=0;
-        w=_button_w;
-        h=_button_h;
-    }
-    bool inRange(int inc_x,int inc_y)
-    {
-        if(!centered) return inc_x>=x&&inc_x<=x+w&&inc_y>=y&&inc_y<=y+h;
-        else
-        {
-            int nx=x-w/2;
-            int ny=y-h/2;
-            return inc_x>=nx&&inc_x<=nx+w&&inc_y>=ny&&inc_y<=ny+h;
-        }
-    }
-    int deal(SDL_Event e)
-    {
-        switch(e.type)
-        {
-        case SDL_MOUSEMOTION:
-            if(inRange(e.motion.x,e.motion.y))
-            {
-                onMouseOver();
-                return 0;
-            }
-            else
-            {
-                onOutOfRange();
-                return 1;
-            }
-            break;
-        case SDL_MOUSEBUTTONDOWN:
-            if(inRange(e.button.x,e.button.y)&&status==1)
-            {
-                onClick();
-                return 0;
-            }
-            else
-            {
-                onOutOfRange();
-                return 1;
-            }
-            break;
-        case SDL_MOUSEBUTTONUP:
-            if(inRange(e.button.x,e.button.y)&&status==2)
-            {
-                onReleased();
-                return 0;
-            }
-            else
-            {
-                onOutOfRange();
-                return 1;
-            }
-            break;
-        case SDL_QUIT:
-            Global::ErrorQuit("SDL_QUIT Received.");
-            return 0;
-            break;
-        }
-        return 1;/// Unsolved.
-    }
-    void onReleased()
-    {
-        status=0;
-        if(_onrelease) _onrelease();
-    }
-    void onClick()
-    {
-        status=2;
-        if(_onclick) _onclick();
-    }
-    void onMouseOver()
-    {
-        printf("[MouseOver] %p\n",this);
-        status=1;
-    }
-    void onOutOfRange()
-    {
-        printf("[OutRange] %p\n",this);
-        status=0;
-    }
-    void draw(SDL_Renderer* rnd)
-    {
-        switch(status)
-        {
-        case 0:
-            if(centered) TextureDraw(rnd,text_normal,x-w/2,y-h/2);
-            else TextureDraw(rnd,text_normal,x,y);
-            break;
-        case 1:
-            if(centered) TextureDraw(rnd,text_mouseover,x-w/2,y-h/2);
-            else TextureDraw(rnd,text_mouseover,x,y);
-            break;
-        case 2:
-            if(centered) TextureDraw(rnd,text_clicked,x-w/2,y-h/2);
-            else TextureDraw(rnd,text_clicked,x,y);
-            break;
-        }
-    }
-};
+#include "xbutton.hpp"
 
 void LoopFrontPage()
 {
@@ -209,10 +106,15 @@ void LoopLoading()
     _menu_background=MyLoadImage(rnd,"img\\menu_bg.png",NULL,NULL);
     _menu_text=MyLoadImage(rnd,"img\\menu_text.png",NULL,NULL);
     _menu_light=MyLoadImage(rnd,"img\\menu_highlight.png",NULL,NULL);
+    _box_black=MyLoadImage(rnd,"img\\box_black.png",NULL,NULL);
+    _box_white=MyLoadImage(rnd,"img\\box_white.png",NULL,NULL);
+    _box_blank=MyLoadImage(rnd,"img\\box_blank.png",NULL,NULL);
 
     LoadButtonX(restart);
     LoadButtonX(cancel);
     LoadButtonX(givein);
+    LoadButtonX(other);
+    LoadButtonX(exit);
 
     /// Memory Leak?
     SDL_Surface* _cursor_surf=IMG_Load("img\\mouse.png");
@@ -236,6 +138,10 @@ void LoopLoading()
     _text_singleplayer_lost=RenderUTF8(rnd,systtf.font(),"你输了~",color_white,NULL,NULL);
     _text_singleplayer_win=RenderUTF8(rnd,systtf.font(),"你赢了！",color_white,NULL,NULL);
     _text_searching_server=RenderUTF8(rnd,systtf.font(),"正在搜索对局...",color_white,NULL,NULL);
+    _text_singleplayer_choose=RenderUTF8(rnd,systtf.font(),"请选择难度",color_white,NULL,NULL);
+    _text_singleplayer_easy=RenderUTF8(rnd,systtf.font(),"小白",color_white,NULL,NULL);
+    _text_singleplayer_normal=RenderUTF8(rnd,systtf.font(),"普通",color_white,NULL,NULL);
+    _text_singleplayer_hard=RenderUTF8(rnd,systtf.font(),"大师",color_white,NULL,NULL);
 
     /// Loaded
     SDL_SetWindowTitle(wnd,"GoBang 2016");
@@ -438,10 +344,92 @@ int LoopSinglePlayerFinish(int winner)
     return 0;
 }
 
+int LoopGetAIHardness()
+{
+
+    return 1;
+
+    int running=1;
+    SDL_Event e;
+    int need_update=1;
+
+    xbutton choose_easy;
+    xbutton choose_normal;
+    xbutton choose_hard;
+
+    choose_easy.text_clicked=BNAME(other,clicked);
+    choose_easy.text_mouseover=BNAME(other,mouseover);
+    choose_easy.text_normal=BNAME(other,normal);
+    choose_easy.centered=1;
+    SDL_QueryTexture(BNAME(other,clicked),NULL,NULL,&choose_easy.w,&choose_easy.h);
+    choose_easy.x=WIN_WIDTH/2;
+    choose_easy.y=WIN_HEIGHT/2-choose_easy.h-20;
+
+    choose_normal.text_clicked=BNAME(other,clicked);
+    choose_normal.text_mouseover=BNAME(other,mouseover);
+    choose_normal.text_normal=BNAME(other,normal);
+    choose_normal.centered=1;
+    choose_normal.w=choose_easy.w;
+    choose_normal.h=choose_easy.h;
+    choose_normal.x=WIN_WIDTH/2;
+    choose_normal.y=WIN_HEIGHT/2;
+
+    choose_hard.text_clicked=BNAME(other,clicked);
+    choose_hard.text_mouseover=BNAME(other,mouseover);
+    choose_hard.text_normal=BNAME(other,normal);
+    choose_hard.centered=1;
+    choose_hard.w=choose_easy.w;
+    choose_hard.h=choose_easy.h;
+    choose_hard.x=WIN_WIDTH/2;
+    choose_hard.y=WIN_HEIGHT/2+choose_hard.h+20;
+
+    SDL_Rect rect;
+    rect.w=20+20+choose_easy.w;
+    rect.h=30+30+3*choose_easy.h+20*2;
+    rect.x=WIN_WIDTH/2-choose_easy.w/2-20;
+    rect.y=WIN_HEIGHT/2-choose_easy.h/2*3-20-30;
+
+
+    SDL_Texture* newtext=SDL_CreateTexture(rnd,SDL_PIXELFORMAT_RGBX8888,SDL_TEXTUREACCESS_TARGET,rect.w,rect.h);
+    printf("%s\n",SDL_GetError());
+    /// Set Render Target to Texture.
+    SDL_SetRenderTarget(rnd,newtext);
+    SDL_SetRenderDrawBlendMode(rnd,SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(newtext,SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(rnd,128,128,128,128);
+    SDL_RenderFillRect(rnd,NULL);
+    /// Reset Render Target to Window
+    SDL_SetRenderTarget(rnd,NULL);
+    //SDL_SetTextureAlphaMod(newtext,128);
+
+    while(running)
+    {
+        while(!need_update&&SDL_WaitEvent(&e))
+        {
+            choose_easy.deal(e);
+            choose_normal.deal(e);
+            choose_hard.deal(e);
+            need_update=1;
+        }
+
+        SDL_RenderClear(rnd);
+        TextureDraw(rnd,_background,0,0);
+        TextureDraw(rnd,_board,240,45);
+        SDL_RenderCopy(rnd,newtext,NULL,&rect);
+        choose_easy.draw(rnd);
+        choose_normal.draw(rnd);
+        choose_hard.draw(rnd);
+        SDL_RenderPresent(rnd);
+        need_update=0;
+    }
+    return 0;
+}
+
 int _temp_Really=0;
 
 void LoopSinglePlayer()
 {
+    int hardness=LoopGetAIHardness();
     int running=1;
     SDL_Event e;
     Game::InitSinglePlayer();
