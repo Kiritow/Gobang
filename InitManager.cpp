@@ -74,6 +74,7 @@ InitManager_Mix::InitManager_Mix()
     {
         Global::ErrorQuit("Failed to OpenAudio");
     }
+    Mix_AllocateChannels(16);
 }
 
 InitManager_Mix::~InitManager_Mix()

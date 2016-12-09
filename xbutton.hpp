@@ -9,6 +9,9 @@ public:
     int status;
     function<void()> _onrelease;
     function<void()> _onclick;
+    function<void()> _onmouseover;
+    function<void()> _onoutofrange;
+
     xbutton()
     {
         status=0;
@@ -74,22 +77,22 @@ public:
     }
     void onReleased()
     {
-        status=0;
         if(_onrelease) _onrelease();
+        status=0;
     }
     void onClick()
     {
-        status=2;
         if(_onclick) _onclick();
+        status=2;
     }
     void onMouseOver()
     {
-        printf("[MouseOver] %p\n",this);
+        if(_onmouseover) _onmouseover();
         status=1;
     }
     void onOutOfRange()
     {
-        printf("[OutRange] %p\n",this);
+        if(_onoutofrange) _onoutofrange();
         status=0;
     }
     void draw(SDL_Renderer* rnd)
@@ -111,3 +114,5 @@ public:
         }
     }
 };
+
+

@@ -24,6 +24,9 @@ Mix_Music* _bgm=NULL;
 Mix_Chunk* _down_1=NULL;
 Mix_Chunk* _down_2=NULL;
 Mix_Chunk* _down_3=NULL;
+Mix_Chunk* _effect_clicked=NULL;
+Mix_Chunk* _effect_mouseover=NULL;
+
 SDL_Texture* _button_multi_beserver=NULL;
 SDL_Texture* _button_multi_beclient=NULL;
 SDL_Texture* _button_multi_back=NULL;
@@ -56,6 +59,17 @@ const int _button_h=55;
 
 #include "xbutton.hpp"
 
+auto _play_clicked_basic=[&](xbutton& b)
+{
+    if(b.status!=2) Mix_PlayChannel(-1,_effect_clicked,0);
+};
+auto _play_mouseover_basic=[&](xbutton& b)
+{
+    if(b.status!=1) Mix_PlayChannel(-1,_effect_mouseover,0);
+};
+#define _play_clicked(ButtonVariableName) [&](){_play_clicked_basic(ButtonVariableName);}
+#define _play_mouseover(ButtonVariableName) [&](){_play_mouseover_basic(ButtonVariableName);}
+
 void LoopFrontPage()
 {
     SDL_Texture* text=MyLoadImage(rnd,"img\\frontpage_prefer.png",NULL,NULL);
@@ -71,7 +85,7 @@ void LoopFrontPage()
         SDL_RenderCopy(rnd,text,NULL,&rect);
         SDL_RenderPresent(rnd);
         SDL_PollEvent(NULL);
-        SDL_Delay(1500/255);
+        SDL_Delay(800/255);
         printf("Overlay %d\n",i);
     }
 
@@ -84,19 +98,13 @@ void LoopFrontPage()
         SDL_RenderCopy(rnd,text,NULL,NULL);
         SDL_RenderPresent(rnd);
         SDL_PollEvent(NULL);
-        SDL_Delay(1500/255);
+        SDL_Delay(800/255);
         printf("Overlay %d\n",i);
     }
 }
 
-void LoopLoading()
+int ProcLoading(void* iStopFlag)
 {
-    int w,h;
-    SDL_Texture* tx_a=RenderText(rnd,systtf.font(),"Loading...",color_white,&w,&h);
-    SDL_RenderClear(rnd);
-    TextureDraw(rnd,tx_a,WIN_WIDTH/2-w/2,WIN_HEIGHT/2-h/2);
-    SDL_RenderPresent(rnd);
-
     _background=MyLoadImage(rnd,"img\\background.png",NULL,NULL);
     _board=MyLoadImage(rnd,"img\\board.png",NULL,NULL);
     _spot_white=MyLoadImage(rnd,"img\\white_spot.png",NULL,NULL);
@@ -125,6 +133,8 @@ void LoopLoading()
     _down_1=Mix_LoadWAV("mp3\\down_1.wav");
     _down_2=Mix_LoadWAV("mp3\\down_2.wav");
     _down_3=Mix_LoadWAV("mp3\\down_3.wav");
+    _effect_clicked=Mix_LoadWAV("mp3\\effect_clicked.wav");
+    _effect_mouseover=Mix_LoadWAV("mp3\\effect_mouseover.wav");
 
     _button_multi_beserver=RenderUTF8(rnd,systtf.font(),"建立房间",color_white,NULL,NULL);
     _button_multi_beclient=RenderUTF8(rnd,systtf.font(),"搜索房间",color_white,NULL,NULL);
@@ -145,6 +155,28 @@ void LoopLoading()
 
     /// Loaded
     SDL_SetWindowTitle(wnd,"GoBang 2016");
+
+    *(int*)iStopFlag=1;
+    return 0;
+}
+
+void LoopLoading()
+{
+    /// Load The Loading Resources.
+    int w,h;
+    SDL_Texture* tx_a=RenderText(rnd,systtf.font(),"Loading...",color_white,&w,&h);
+    SDL_RenderClear(rnd);
+    TextureDraw(rnd,tx_a,WIN_WIDTH/2-w/2,WIN_HEIGHT/2-h/2);
+    SDL_RenderPresent(rnd);
+    ///  Start Background Worker For Loading...
+    int finish=0;
+    SDL_Thread* td=SDL_CreateThread(ProcLoading,"Loading Thread",&finish);
+    SDL_Event e;
+    while(!finish)
+    {
+        SDL_WaitEventTimeout(&e,100);
+    }
+    SDL_WaitThread(td,NULL);
 }
 
 int LoopMenu()
@@ -344,14 +376,21 @@ int LoopSinglePlayerFinish(int winner)
     return 0;
 }
 
+
+
 int LoopGetAIHardness()
 {
-
-    return 1;
+    /// If you don't need this, then return 1 for normal level.
+    //return 1;
 
     int running=1;
     SDL_Event e;
     int need_update=1;
+
+    int hardness=-1;
+
+    int _text_singleplayer_sz_w,_text_singleplayer_sz_h;
+    SDL_QueryTexture(_text_singleplayer_easy,NULL,NULL,&_text_singleplayer_sz_w,&_text_singleplayer_sz_h);
 
     xbutton choose_easy;
     xbutton choose_normal;
@@ -364,6 +403,12 @@ int LoopGetAIHardness()
     SDL_QueryTexture(BNAME(other,clicked),NULL,NULL,&choose_easy.w,&choose_easy.h);
     choose_easy.x=WIN_WIDTH/2;
     choose_easy.y=WIN_HEIGHT/2-choose_easy.h-20;
+    choose_easy._onrelease=[&]()
+    {
+        hardness=0;
+    };
+    choose_easy._onmouseover=_play_mouseover(choose_easy);
+    choose_easy._onclick=_play_clicked(choose_easy);
 
     choose_normal.text_clicked=BNAME(other,clicked);
     choose_normal.text_mouseover=BNAME(other,mouseover);
@@ -373,6 +418,12 @@ int LoopGetAIHardness()
     choose_normal.h=choose_easy.h;
     choose_normal.x=WIN_WIDTH/2;
     choose_normal.y=WIN_HEIGHT/2;
+    choose_normal._onrelease=[&]()
+    {
+        hardness=1;
+    };
+    choose_normal._onmouseover=_play_mouseover(choose_normal);
+    choose_normal._onclick=_play_clicked(choose_normal);
 
     choose_hard.text_clicked=BNAME(other,clicked);
     choose_hard.text_mouseover=BNAME(other,mouseover);
@@ -382,13 +433,18 @@ int LoopGetAIHardness()
     choose_hard.h=choose_easy.h;
     choose_hard.x=WIN_WIDTH/2;
     choose_hard.y=WIN_HEIGHT/2+choose_hard.h+20;
+    choose_hard._onrelease=[&]()
+    {
+        hardness=2;
+    };
+    choose_hard._onmouseover=_play_mouseover(choose_hard);
+    choose_hard._onclick=_play_clicked(choose_hard);
 
     SDL_Rect rect;
     rect.w=20+20+choose_easy.w;
     rect.h=30+30+3*choose_easy.h+20*2;
     rect.x=WIN_WIDTH/2-choose_easy.w/2-20;
     rect.y=WIN_HEIGHT/2-choose_easy.h/2*3-20-30;
-
 
     SDL_Texture* newtext=SDL_CreateTexture(rnd,SDL_PIXELFORMAT_RGBX8888,SDL_TEXTUREACCESS_TARGET,rect.w,rect.h);
     printf("%s\n",SDL_GetError());
@@ -419,10 +475,17 @@ int LoopGetAIHardness()
         choose_easy.draw(rnd);
         choose_normal.draw(rnd);
         choose_hard.draw(rnd);
+        TextureDraw(rnd,_text_singleplayer_easy,choose_easy.x-_text_singleplayer_sz_w/2,choose_easy.y-_text_singleplayer_sz_h/2-7);
+        TextureDraw(rnd,_text_singleplayer_normal,choose_normal.x-_text_singleplayer_sz_w/2,choose_normal.y-_text_singleplayer_sz_h/2-7);
+        TextureDraw(rnd,_text_singleplayer_hard,choose_hard.x-_text_singleplayer_sz_w/2,choose_hard.y-_text_singleplayer_sz_h/2-7);
         SDL_RenderPresent(rnd);
         need_update=0;
+
+        if(hardness!=-1) running=0;
     }
-    return 0;
+
+    SDL_DestroyTexture(newtext);
+    return hardness;
 }
 
 int _temp_Really=0;
@@ -430,6 +493,8 @@ int _temp_Really=0;
 void LoopSinglePlayer()
 {
     int hardness=LoopGetAIHardness();
+    printf("AI Hardness is %d\n",hardness);
+
     int running=1;
     SDL_Event e;
     Game::InitSinglePlayer();
@@ -694,6 +759,8 @@ int NetFindServer(void* runFlag)
 
     /// TODO
 
+
+    return 0;
 }
 
 void LoopMultiPlayerClient()

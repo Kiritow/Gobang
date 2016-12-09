@@ -1,11 +1,12 @@
 # depslib dependency file v1.0
-1480975716 source:d:\codeblocks_codes\gobang20161204\initmanager.cpp
+1481260841 source:d:\codeblocks_codes\gobang20161204\initmanager.cpp
 	"InitManager.h"
 
-1481172516 source:d:\codeblocks_codes\gobang20161204\main.cpp
+1481251157 source:d:\codeblocks_codes\gobang20161204\main.cpp
 	"config.h"
 	"InitManager.h"
 	"GameGUI.h"
+	<fstream>
 
 1481051388 d:\codeblocks_codes\gobang20161204\config.h
 	"basic_config.h"
@@ -37,7 +38,7 @@
 1481111478 source:d:\codeblocks_codes\gobang20161204\sdl_engine.cpp
 	"sdl_engine.h"
 
-1481172612 source:d:\codeblocks_codes\gobang20161204\gamegui.cpp
+1481261459 source:d:\codeblocks_codes\gobang20161204\gamegui.cpp
 	"GameGUI.h"
 	"Game.h"
 	<functional>
@@ -56,5 +57,5 @@
 1481011802 d:\codeblocks_codes\gobang20161204\game.h
 	"config.h"
 
-1481110633 d:\codeblocks_codes\gobang20161204\xbutton.hpp
+1481261242 d:\codeblocks_codes\gobang20161204\xbutton.hpp
 

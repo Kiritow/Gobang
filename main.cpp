@@ -1,16 +1,20 @@
 #include "config.h"
 #include "InitManager.h"
 #include "GameGUI.h"
+#include <fstream>
+using namespace std;
+
 
 int main()
 {
-    printf("Initializing...\n");
+    printf("Checking Debug Mode...\n");
     FILE* fp=fopen("isDebug.txt","r");
     if(fp==NULL)
     {
         HideConsole();
     }
     else fclose(fp);
+    printf("Initializing...\n");
     int font_open_ret=systtf.openFont("msyh.ttf",20);
     if(font_open_ret<0)
     {
