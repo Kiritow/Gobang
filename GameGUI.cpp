@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cpplib/cpplib#gsock>
 #include <wartime/frame/MapBox.h>
+#include "udpsock.hpp"
+#include "sysname.h"
 using namespace std;
 
 SDL_Texture* _background=NULL;
@@ -44,7 +46,9 @@ SDL_Texture* _text_singleplayer_choose=NULL;
 SDL_Texture* _text_multi_beserver=NULL;
 SDL_Texture* _text_multi_beclient=NULL;
 SDL_Texture* _text_multi_back=NULL;
-
+SDL_Texture* _text_multi_server_tcping=NULL;
+SDL_Texture* _text_multi_server_udping=NULL;
+SDL_Texture* _text_multi_server_canceling=NULL;
 
 /// clicked mouseover normal
 #define BNAME(ButtonName,Status) _button_##ButtonName##_##Status
@@ -158,6 +162,9 @@ int ProcLoading(void* iStopFlag)
     _text_singleplayer_easy=RenderUTF8(rnd,systtf.font(),"小白",color_white,NULL,NULL);
     _text_singleplayer_normal=RenderUTF8(rnd,systtf.font(),"普通",color_white,NULL,NULL);
     _text_singleplayer_hard=RenderUTF8(rnd,systtf.font(),"大师",color_white,NULL,NULL);
+    _text_multi_server_tcping=RenderUTF8(rnd,systtf.font(),"正在建立服务器...",color_white,NULL,NULL);
+    _text_multi_server_udping=RenderUTF8(rnd,systtf.font(),"正在等待玩家加入...",color_white,NULL,NULL);
+    _text_multi_server_canceling=RenderUTF8(rnd,systtf.font(),"正在取消...",color_white,NULL,NULL);
 
     /**
     // A Small Example of PreRendering
@@ -667,6 +674,7 @@ void LoopSinglePlayer()
     backmenu._onrelease=[&]()
     {
         running=0;
+        need_redraw=1;
     };
 
 
@@ -957,101 +965,23 @@ int LoopChooseType()
     return 0;
 }
 
-void LoopMultiPlayerServer()
-{
-
-}
-
-/// Thread Method. Called By LoopMultiPlayerClient.
-int NetFindServer(void* runFlag)
-{
-    sock s;
-    int ret=s.connect("123.206.86.73",58699);
-    if(ret<0)
-    {
-        *(int*)runFlag=0;
-        return 0;
-    }
-    char buffer[1024];
-    memset(buffer,0,1024);
-    unsigned long sz=1024;
-    GetComputerName(buffer,&sz);
-    printf("Computer Name: %s\n",buffer);
-    string fullname=buffer;
-    memset(buffer,0,1024);
-    GetUserName(buffer,&sz);
-    fullname=fullname+"-"+buffer;
-    printf("User Name: %s\n",buffer);
-
-    MapBox box;
-    box.add("MYNAME",fullname);
-    box.add("ALLOW","0");
-    box.add("ROOMID","");
-    box.add("ACTION","FIND");
-    box.add("TIMEOUT","30");
-
-    ret=s.send(box);
-    if(ret<0)
-    {
-        *(int*)runFlag=0;
-        return 1;
-    }
-
-    ret=s.recv(box);
-    if(ret<0)
-    {
-        *(int*)runFlag=0;
-        return 2;
-    }
-
-    /// TODO
-
-
-    return 0;
-}
-
-void LoopMultiPlayerClient()
-{
-    int running=1;
-    int need_update=1;
-    SDL_Event e;
-
-    printf("Starting Thread...\n");
-    SDL_Thread* tid=SDL_CreateThread(NetFindServer,"FindServer",&running);
-
-    while(running)
-    {
-        while(!need_update&&SDL_WaitEventTimeout(&e,100))
-        {
-            need_update=1;
-        }
-        SDL_RenderClear(rnd);
-        SDL_RenderCopy(rnd,_background,NULL,NULL);
-        SDL_Rect rect;
-        SDL_QueryTexture(_text_searching_server,NULL,NULL,&rect.w,&rect.h);
-        rect.x=WIN_WIDTH/2-rect.w/2;
-        rect.y=WIN_HEIGHT/2-rect.h/2;
-        SDL_RenderCopy(rnd,_text_searching_server,NULL,&rect);
-        SDL_RenderPresent(rnd);
-        need_update=0;
-    }
-
-    int status=0;
-    SDL_WaitThread(tid,&status);
-}
+#include "GameGUI_Network.hpp"
 
 void LoopMultiPlayer()
 {
-    switch(LoopChooseType())
+    while(1)
     {
-    case 0:
-        return;
-    case 1:
-        LoopMultiPlayerServer();
-        return;
-    case 2:
-        LoopMultiPlayerClient();
-        return;
+        switch(LoopChooseType())
+        {
+        case 0:
+            return;
+        case 1:
+            LoopMultiPlayerServer();
+            break;
+        case 2:
+            LoopMultiPlayerClient();
+            break;
+        }
     }
 }
 

@@ -44,6 +44,7 @@
 		<Unit filename="Game.h" />
 		<Unit filename="GameGUI.cpp" />
 		<Unit filename="GameGUI.h" />
+		<Unit filename="GameGUI_Network.hpp" />
 		<Unit filename="InitManager.cpp" />
 		<Unit filename="InitManager.h" />
 		<Unit filename="basic_config.cpp" />
@@ -53,6 +54,9 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="sdl_engine.cpp" />
 		<Unit filename="sdl_engine.h" />
+		<Unit filename="sysname.cpp" />
+		<Unit filename="sysname.h" />
+		<Unit filename="udpsock.hpp" />
 		<Unit filename="xbutton.hpp" />
 		<Extensions>
 			<code_completion />
