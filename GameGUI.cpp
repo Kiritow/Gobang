@@ -27,13 +27,12 @@ Mix_Chunk* _down_3=NULL;
 Mix_Chunk* _effect_clicked=NULL;
 Mix_Chunk* _effect_mouseover=NULL;
 
-SDL_Texture* _button_multi_beserver=NULL;
-SDL_Texture* _button_multi_beclient=NULL;
-SDL_Texture* _button_multi_back=NULL;
 SDL_Texture* _button_menu_singleplayer=NULL;
 SDL_Texture* _button_menu_multiplayer=NULL;
 SDL_Texture* _button_menu_about=NULL;
 SDL_Texture* _button_menu_exit=NULL;
+SDL_Texture* _button_glass_basic=NULL;
+SDL_Texture* _button_glass_highlight=NULL;
 
 SDL_Texture* _text_singleplayer_lost=NULL;
 SDL_Texture* _text_singleplayer_win=NULL;
@@ -42,6 +41,10 @@ SDL_Texture* _text_singleplayer_easy=NULL;
 SDL_Texture* _text_singleplayer_normal=NULL;
 SDL_Texture* _text_singleplayer_hard=NULL;
 SDL_Texture* _text_singleplayer_choose=NULL;
+SDL_Texture* _text_multi_beserver=NULL;
+SDL_Texture* _text_multi_beclient=NULL;
+SDL_Texture* _text_multi_back=NULL;
+
 
 /// clicked mouseover normal
 #define BNAME(ButtonName,Status) _button_##ButtonName##_##Status
@@ -52,7 +55,13 @@ BNAMEX(restart);
 BNAMEX(cancel);
 BNAMEX(givein);
 BNAMEX(exit);
+BNAMEX(withdraw);
 BNAMEX(other);
+
+/// Pre-Rendered Buttons.
+BNAMEX(creategame);
+BNAMEX(joingame);
+BNAMEX(multicancel);
 
 const int _button_w=115;
 const int _button_h=55;
@@ -123,6 +132,7 @@ int ProcLoading(void* iStopFlag)
     LoadButtonX(givein);
     LoadButtonX(other);
     LoadButtonX(exit);
+    LoadButtonX(withdraw);
 
     /// Memory Leak?
     SDL_Surface* _cursor_surf=IMG_Load("img\\mouse.png");
@@ -136,10 +146,6 @@ int ProcLoading(void* iStopFlag)
     _effect_clicked=Mix_LoadWAV("mp3\\effect_clicked.wav");
     _effect_mouseover=Mix_LoadWAV("mp3\\effect_mouseover.wav");
 
-    _button_multi_beserver=RenderUTF8(rnd,systtf.font(),"建立房间",color_white,NULL,NULL);
-    _button_multi_beclient=RenderUTF8(rnd,systtf.font(),"搜索房间",color_white,NULL,NULL);
-    _button_multi_back=RenderUTF8(rnd,systtf.font(),"返回",color_white,NULL,NULL);
-
     _button_menu_singleplayer=RenderUTF8(rnd,systtf.font(),"单人游戏",color_white,NULL,NULL);
     _button_menu_multiplayer=RenderUTF8(rnd,systtf.font(),"多人游戏",color_white,NULL,NULL);
     _button_menu_about=RenderUTF8(rnd,systtf.font(),"关于",color_white,NULL,NULL);
@@ -152,6 +158,111 @@ int ProcLoading(void* iStopFlag)
     _text_singleplayer_easy=RenderUTF8(rnd,systtf.font(),"小白",color_white,NULL,NULL);
     _text_singleplayer_normal=RenderUTF8(rnd,systtf.font(),"普通",color_white,NULL,NULL);
     _text_singleplayer_hard=RenderUTF8(rnd,systtf.font(),"大师",color_white,NULL,NULL);
+
+    /**
+    // A Small Example of PreRendering
+    SDL_Texture* newtext=SDL_CreateTexture(rnd,SDL_PIXELFORMAT_RGBX8888,SDL_TEXTUREACCESS_TARGET,rect.w,rect.h);
+    printf("%s\n",SDL_GetError());
+    /// Set Render Target to Texture.
+    SDL_SetRenderTarget(rnd,newtext);
+    SDL_SetRenderDrawBlendMode(rnd,SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(newtext,SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(rnd,128,128,128,128);
+    SDL_RenderFillRect(rnd,NULL);
+    /// Reset Render Target to Window
+    SDL_SetRenderTarget(rnd,NULL);
+    //SDL_SetTextureAlphaMod(newtext,128);
+    */
+
+    /// Pre-Rendering Textures
+    int _glass_w,_glass_h;
+    _button_glass_basic=MyLoadImage(rnd,"img\\button_glass_basic.png",&_glass_w,&_glass_h);
+    _button_glass_highlight=MyLoadImage(rnd,"img\\button_glass_highlight.png",NULL,NULL);
+
+    InitManager_TTF thisf;
+    thisf.openFont("msyh.ttf",25);
+
+    /// Pre-Rendering Variables
+    SDL_Texture* newtext;
+    int _txt_w,_txt_h;
+
+    // CreateGame
+    _text_multi_beserver=RenderUTF8(rnd,thisf.font(),"创建游戏",color_white,&_txt_w,&_txt_h);
+    newtext=SDL_CreateTexture(rnd,SDL_PIXELFORMAT_RGBX8888,SDL_TEXTUREACCESS_TARGET,_glass_w,_glass_h);
+    printf("%s\n",SDL_GetError());
+    /// Set Render Target to Texture.
+    SDL_SetRenderTarget(rnd,newtext);
+    SDL_SetRenderDrawBlendMode(rnd,SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(newtext,SDL_BLENDMODE_BLEND);
+    SDL_RenderCopy(rnd,_button_glass_basic,NULL,NULL);
+    SDL_RenderCopy(rnd,_button_glass_highlight,NULL,NULL);
+    TextureDraw(rnd,_text_multi_beserver,_glass_w/2-_txt_w/2,_glass_h/2-_txt_h/2-5);
+    BNAME(creategame,mouseover)=newtext;
+
+    newtext=SDL_CreateTexture(rnd,SDL_PIXELFORMAT_RGBX8888,SDL_TEXTUREACCESS_TARGET,_glass_w,_glass_h);
+    printf("%s\n",SDL_GetError());
+    /// Set Render Target to Texture.
+    SDL_SetRenderTarget(rnd,newtext);
+    SDL_SetRenderDrawBlendMode(rnd,SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(newtext,SDL_BLENDMODE_BLEND);
+    SDL_RenderCopy(rnd,_button_glass_basic,NULL,NULL);
+    TextureDraw(rnd,_text_multi_beserver,_glass_w/2-_txt_w/2,_glass_h/2-_txt_h/2-5);
+    BNAME(creategame,clicked)=newtext;
+
+    BNAME(creategame,normal)=newtext;
+
+    // JoinGame
+    _text_multi_beclient=RenderUTF8(rnd,thisf.font(),"加入游戏",color_white,&_txt_w,&_txt_h);
+    newtext=SDL_CreateTexture(rnd,SDL_PIXELFORMAT_RGBX8888,SDL_TEXTUREACCESS_TARGET,_glass_w,_glass_h);
+    printf("%s\n",SDL_GetError());
+    /// Set Render Target to Texture.
+    SDL_SetRenderTarget(rnd,newtext);
+    SDL_SetRenderDrawBlendMode(rnd,SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(newtext,SDL_BLENDMODE_BLEND);
+    SDL_RenderCopy(rnd,_button_glass_basic,NULL,NULL);
+    SDL_RenderCopy(rnd,_button_glass_highlight,NULL,NULL);
+    TextureDraw(rnd,_text_multi_beclient,_glass_w/2-_txt_w/2,_glass_h/2-_txt_h/2-5);
+    BNAME(joingame,mouseover)=newtext;
+
+    newtext=SDL_CreateTexture(rnd,SDL_PIXELFORMAT_RGBX8888,SDL_TEXTUREACCESS_TARGET,_glass_w,_glass_h);
+    printf("%s\n",SDL_GetError());
+    /// Set Render Target to Texture.
+    SDL_SetRenderTarget(rnd,newtext);
+    SDL_SetRenderDrawBlendMode(rnd,SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(newtext,SDL_BLENDMODE_BLEND);
+    SDL_RenderCopy(rnd,_button_glass_basic,NULL,NULL);
+    TextureDraw(rnd,_text_multi_beclient,_glass_w/2-_txt_w/2,_glass_h/2-_txt_h/2-5);
+    BNAME(joingame,clicked)=newtext;
+
+    BNAME(joingame,normal)=newtext;
+
+    // Multi-Cancel
+    _text_multi_back=RenderUTF8(rnd,thisf.font(),"返回",color_white,&_txt_w,&_txt_h);
+    newtext=SDL_CreateTexture(rnd,SDL_PIXELFORMAT_RGBX8888,SDL_TEXTUREACCESS_TARGET,_glass_w,_glass_h);
+    printf("%s\n",SDL_GetError());
+    /// Set Render Target to Texture.
+    SDL_SetRenderTarget(rnd,newtext);
+    SDL_SetRenderDrawBlendMode(rnd,SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(newtext,SDL_BLENDMODE_BLEND);
+    SDL_RenderCopy(rnd,_button_glass_basic,NULL,NULL);
+    SDL_RenderCopy(rnd,_button_glass_highlight,NULL,NULL);
+    TextureDraw(rnd,_text_multi_back,_glass_w/2-_txt_w/2,_glass_h/2-_txt_h/2-5);
+    BNAME(multicancel,mouseover)=newtext;
+
+    newtext=SDL_CreateTexture(rnd,SDL_PIXELFORMAT_RGBX8888,SDL_TEXTUREACCESS_TARGET,_glass_w,_glass_h);
+    printf("%s\n",SDL_GetError());
+    /// Set Render Target to Texture.
+    SDL_SetRenderTarget(rnd,newtext);
+    SDL_SetRenderDrawBlendMode(rnd,SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(newtext,SDL_BLENDMODE_BLEND);
+    SDL_RenderCopy(rnd,_button_glass_basic,NULL,NULL);
+    TextureDraw(rnd,_text_multi_back,_glass_w/2-_txt_w/2,_glass_h/2-_txt_h/2-5);
+    BNAME(multicancel,clicked)=newtext;
+
+    BNAME(multicancel,normal)=newtext;
+
+    /// (Pre-Rendering Finish) Reset Render Target to Window
+    SDL_SetRenderTarget(rnd,NULL);
 
     /// Loaded
     SDL_SetWindowTitle(wnd,"GoBang 2016");
@@ -181,6 +292,9 @@ void LoopLoading()
 
 int LoopMenu()
 {
+    /// Start Music
+    Mix_PlayMusic(_bgm,-1);
+
     int running=1;
     int need_update=1;
     SDL_Event e;
@@ -488,7 +602,7 @@ int LoopGetAIHardness()
     return hardness;
 }
 
-int _temp_Really=0;
+
 
 void LoopSinglePlayer()
 {
@@ -499,10 +613,63 @@ void LoopSinglePlayer()
     SDL_Event e;
     Game::InitSinglePlayer();
 
-    /// Start Music
-    Mix_PlayMusic(_bgm,-1);
-
     int need_redraw=1;
+    int _temp_Really=0;
+
+    xbutton withdraw;
+    xbutton givein;
+    xbutton backmenu;
+
+    withdraw.text_clicked=BNAME(withdraw,clicked);
+    withdraw.text_mouseover=BNAME(withdraw,mouseover);
+    withdraw.text_normal=BNAME(withdraw,normal);
+    withdraw.x=795;
+    withdraw.y=230;
+    withdraw.centered=0;
+    withdraw._onmouseover=_play_mouseover(withdraw);
+    withdraw._onclick=_play_clicked(withdraw);
+    withdraw._onrelease=[&]()
+    {
+        if(Game::CancelLast()) _temp_Really=!_temp_Really;
+    };
+
+    givein.text_clicked=BNAME(givein,clicked);
+    givein.text_mouseover=BNAME(givein,mouseover);
+    givein.text_normal=BNAME(givein,normal);
+    givein.x=795;
+    givein.y=345;
+    givein.centered=0;
+    givein._onmouseover=_play_mouseover(givein);
+    givein._onclick=_play_clicked(givein);
+    givein._onrelease=[&]()
+    {
+        if(LoopSinglePlayerFinish(!_temp_Really)==0)
+        {
+            running=0;
+            need_redraw=1;
+        }
+        else
+        {
+            Game::InitSinglePlayer();
+            _temp_Really=0;
+        }
+    };
+
+
+    backmenu.text_clicked=BNAME(cancel,clicked);
+    backmenu.text_mouseover=BNAME(cancel,mouseover);
+    backmenu.text_normal=BNAME(cancel,normal);
+    backmenu.x=795;
+    backmenu.y=460;
+    backmenu.centered=0;
+    backmenu._onmouseover=_play_mouseover(backmenu);
+    backmenu._onclick=_play_clicked(backmenu);
+    backmenu._onrelease=[&]()
+    {
+        running=0;
+    };
+
+
     while(running)
     {
         function<void()> work;
@@ -602,6 +769,7 @@ void LoopSinglePlayer()
                                 {
                                     /// Start A New Game
                                     Game::InitSinglePlayer();
+                                    _temp_Really=0;
                                 }
                             }
                         }
@@ -610,12 +778,18 @@ void LoopSinglePlayer()
                     else
                     {
                         /// The Mouse Is Out Of Range. Just Update The Screen.
-
+                        need_redraw=1;
                     }
                 }
                 break;
             }
+
+            withdraw.deal(e);
+            givein.deal(e);
+            backmenu.deal(e);
+            need_redraw=1;
         }
+
         SDL_RenderClear(rnd);
         TextureDraw(rnd,_background,0,0);
         TextureDraw(rnd,_board,240,45);
@@ -635,6 +809,32 @@ void LoopSinglePlayer()
                 }
             }
         }
+        if(_temp_Really)
+        {
+            SDL_Rect rect;
+            rect.x=50;
+            rect.y=85;
+            rect.w=150;
+            rect.h=150;
+            SDL_RenderCopyEx(rnd,_box_white,NULL,&rect,0,NULL,SDL_FLIP_NONE);
+            rect.y=400;
+            SDL_RenderCopyEx(rnd,_box_blank,NULL,&rect,0,NULL,SDL_FLIP_NONE);
+        }
+        else
+        {
+            SDL_Rect rect;
+            rect.x=50;
+            rect.y=85;
+            rect.w=150;
+            rect.h=150;
+            SDL_RenderCopyEx(rnd,_box_blank,NULL,&rect,0,NULL,SDL_FLIP_NONE);
+            rect.y=400;
+            SDL_RenderCopyEx(rnd,_box_black,NULL,&rect,0,NULL,SDL_FLIP_NONE);
+        }
+        withdraw.draw(rnd);
+        givein.draw(rnd);
+        backmenu.draw(rnd);
+        /// Draw the cursor on the board.
         if(work) work();
         SDL_RenderPresent(rnd);
         need_redraw=0;
@@ -649,12 +849,72 @@ int LoopChooseType()
 
     int _blank_A;
     int _blank_x1,_blank_x2,_blank_x3;
-    SDL_QueryTexture(_button_multi_back,NULL,NULL,&_blank_x1,&_blank_A);
-    SDL_QueryTexture(_button_multi_beclient,NULL,NULL,&_blank_x2,&_blank_A);
-    SDL_QueryTexture(_button_multi_beserver,NULL,NULL,&_blank_x3,&_blank_A);
+    SDL_QueryTexture(_text_multi_back,NULL,NULL,&_blank_x1,&_blank_A);
+    SDL_QueryTexture(_text_multi_beclient,NULL,NULL,&_blank_x2,&_blank_A);
+    SDL_QueryTexture(_text_multi_beserver,NULL,NULL,&_blank_x3,&_blank_A);
 
-    int B=(WIN_HEIGHT-3*_blank_A)/8;
-    int C=3*B;
+    xbutton creategame;
+    xbutton joingame;
+    xbutton cancel;
+
+    int selected=0;
+
+    creategame.text_clicked=BNAME(creategame,clicked);
+    creategame.text_mouseover=BNAME(creategame,mouseover);
+    creategame.text_normal=BNAME(creategame,normal);
+    creategame.centered=0;
+    creategame.w=180;
+    creategame.h=100;
+    creategame.x=410;
+    creategame.y=125;
+    creategame._onmouseover=_play_mouseover(creategame);
+    creategame._onclick=_play_clicked(creategame);
+    creategame._onrelease=[&]()
+    {
+        selected=2;
+    };
+
+    joingame.text_clicked=BNAME(joingame,clicked);
+    joingame.text_mouseover=BNAME(joingame,mouseover);
+    joingame.text_normal=BNAME(joingame,normal);
+    joingame.centered=0;
+    joingame.w=180;
+    joingame.h=100;
+    joingame.x=410;
+    joingame.y=250;
+    joingame._onmouseover=_play_mouseover(joingame);
+    joingame._onclick=_play_clicked(joingame);
+    joingame._onrelease=[&]()
+    {
+        selected=3;
+    };
+
+    cancel.text_clicked=BNAME(multicancel,clicked);
+    cancel.text_mouseover=BNAME(multicancel,mouseover);
+    cancel.text_normal=BNAME(multicancel,normal);
+    cancel.centered=0;
+    cancel.w=180;
+    cancel.h=100;
+    cancel.x=410;
+    cancel.y=375;
+    cancel._onmouseover=_play_mouseover(cancel);
+    cancel._onclick=_play_clicked(cancel);
+    cancel._onrelease=[&]()
+    {
+        selected=1;
+    };
+
+    SDL_Texture* newtext=SDL_CreateTexture(rnd,SDL_PIXELFORMAT_RGBX8888,SDL_TEXTUREACCESS_TARGET,500,500);
+    printf("%s\n",SDL_GetError());
+    /// Set Render Target to Texture.
+    SDL_SetRenderTarget(rnd,newtext);
+    SDL_SetRenderDrawBlendMode(rnd,SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(newtext,SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(rnd,128,128,128,128);
+    SDL_RenderFillRect(rnd,NULL);
+    /// Reset Render Target to Window
+    SDL_SetRenderTarget(rnd,NULL);
+    SDL_SetRenderDrawColor(rnd,0,0,0,0);
 
     while(running)
     {
@@ -666,44 +926,31 @@ int LoopChooseType()
                 /// request to exit...
                 Global::ErrorQuit("SDL_QUIT Received.");
                 break;
-            case SDL_MOUSEMOTION:
-                {
-                    break;
-                }
-            case SDL_MOUSEBUTTONDOWN:
-                {
-                    /// Check Which Button It Hits.
-                    if(isInRect(e.button.x,e.button.y,WIN_WIDTH/2-_blank_x3/2,C,WIN_WIDTH/2+_blank_x3/2,C+_blank_A))
-                    {
-                        /// "Be Server" Clicked.
-                        printf("[Be Server] Clicked.\n");
-                        return 1;
-                    }
-                    else if(isInRect(e.button.x,e.button.y,WIN_WIDTH/2-_blank_x2/2,C+_blank_A+B,WIN_WIDTH/2+_blank_x2/2,C+_blank_A+B+_blank_A))
-                    {
-                        /// "Be Client" Clicked.
-                        printf("[Be Client] Clicked.\n");
-                        return 2;
-                    }
-                    else if(isInRect(e.button.x,e.button.y,WIN_WIDTH/2-_blank_x1/2,C+_blank_A*2+B*2,WIN_WIDTH/2+_blank_x1/2,C+_blank_A*2+B*2+_blank_A))
-                    {
-                        printf("[Back] Clicked.\n");
-                        return 0;
-                    }
-                    /// else... just do nothing.
-                }
-                break;
             }
+            if(creategame.deal(e))
+            if(joingame.deal(e))
+            if(cancel.deal(e));
+
+            if(selected)
+            {
+                running=0;
+            }
+
+            need_update=1;
         }
 
         SDL_RenderClear(rnd);
         TextureDraw(rnd,_background,0,0);
-        TextureDraw(rnd,_button_multi_beserver,WIN_WIDTH/2-_blank_x3/2,C);
-        TextureDraw(rnd,_button_multi_beclient,WIN_WIDTH/2-_blank_x2/2,C+_blank_A+B);
-        TextureDraw(rnd,_button_multi_back,WIN_WIDTH/2-_blank_x1/2,C+_blank_A*2+B*2);
+        TextureDraw(rnd,newtext,250,50);
+        creategame.draw(rnd);
+        joingame.draw(rnd);
+        cancel.draw(rnd);
         SDL_RenderPresent(rnd);
         need_update=0;
     }
+
+    SDL_DestroyTexture(newtext);
+    return selected-1;
 
     /// Never Reached
     Global::ErrorQuit("====This Should Never Be Reached.====");

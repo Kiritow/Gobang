@@ -19,6 +19,7 @@ public:
     TTF_Font* font();
 private:
     TTF_Font* _font;
+    static int ctm;
 };
 
 class InitManager_IMG

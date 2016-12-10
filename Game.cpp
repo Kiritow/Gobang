@@ -1,4 +1,6 @@
 #include "Game.h"
+#include <vector>
+using namespace std;
 
 namespace External
 {
@@ -44,12 +46,15 @@ namespace Game
     int _m_last_color;
     int _m_last_x;
     int _m_last_y;
+    vector<pair<int,int>> cvec;
     void InitSinglePlayer()
     {
         memset(_m_board,0,sizeof(_m_board));
+        cvec.clear();
     }
     void SetSpot(int ColorID,int BoardY,int BoardX)
     {
+        cvec.push_back(pair<int,int>(BoardY,BoardX));
         _m_board[BoardY][BoardX]=ColorID;
     }
     int GetSpot(int BoardY,int BoardX)
@@ -73,6 +78,19 @@ namespace Game
         else
         {
             //printf("Check Winner: No winner detected.\n");
+            return 0;
+        }
+    }
+    int CancelLast()
+    {
+        if(cvec.size()>0)
+        {
+            _m_board[cvec.back().first][cvec.back().second]=0;
+            cvec.pop_back();
+            return 1;
+        }
+        else
+        {
             return 0;
         }
     }

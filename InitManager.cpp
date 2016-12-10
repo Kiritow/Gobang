@@ -31,8 +31,16 @@ InitManager_IMG::~InitManager_IMG()
     IMG_Quit();
 }
 
+int InitManager_TTF::ctm=0;
+
 InitManager_TTF::InitManager_TTF()
 {
+    /// ~_~ check ctm and add it anyway
+    if(ctm++>0)
+    {
+        return;
+    }
+
     if(TTF_Init()<0)
     {
         Global::ErrorQuit("Failed to init SDL2 TTF.");
@@ -61,7 +69,16 @@ int InitManager_TTF::closeFont()
 
 InitManager_TTF::~InitManager_TTF()
 {
+    /// Close Font anyway.
     if(_font) closeFont();
+
+    /// ~_~ Firstly ctm=ctm-1, if ctm still > 0, then return ( TTF_Quit Not Executed )
+    if(--ctm>0)
+    {
+        return;
+    }
+
+    TTF_Quit();
 }
 
 InitManager_Mix::InitManager_Mix()
